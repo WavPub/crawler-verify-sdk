@@ -1,14 +1,20 @@
 # WavPub Crawler Verify SDK — Go
 
+> **中文** | **[English](#english)**
+
+---
+
+## 中文
+
 纯 Go 标准库实现（**零第三方依赖**），支持 Go 1.22+。
 
-## 安装
+### 安装
 
 ```bash
 go get github.com/WavPub/crawler-verify-sdk/go
 ```
 
-## 方式一：0 RTT 本地离线验签（推荐）
+### 方式一：0 RTT 本地离线验签（推荐）
 
 ```go
 v, err := wavpubverify.NewOfflineVerifier(ctx)
@@ -24,7 +30,7 @@ if res.Valid {
 }
 ```
 
-## 方式二：在线 HTTP 接口验证
+### 方式二：在线 HTTP 接口验证
 
 ```go
 v := wavpubverify.NewOnlineVerifier()
@@ -37,3 +43,45 @@ if res.Valid {
 ```
 
 更多框架集成示例见 [examples/nethttp](examples/nethttp/main.go) 与 [examples/gin](examples/gin/main.go)。
+
+---
+
+## English
+
+Pure Go standard-library implementation (**zero external dependencies**), supporting Go 1.22+.
+
+### Installation
+
+```bash
+go get github.com/WavPub/crawler-verify-sdk/go
+```
+
+### Mode 1: 0-RTT Local Offline Verification (Recommended)
+
+```go
+v, err := wavpubverify.NewOfflineVerifier(ctx)
+if err != nil {
+    // Safe to continue starting; background polling will recover automatically
+    log.Printf("initial JWKS sync warning: %v", err)
+}
+defer v.Close()
+
+res := v.Verify(r.Header.Get(wavpubverify.HeaderToken), r.Host, wavpubverify.ScopeRSS)
+if res.Valid {
+    // Verified WavPub crawler request -> allow through
+}
+```
+
+### Mode 2: Online HTTP Verification API
+
+```go
+v := wavpubverify.NewOnlineVerifier()
+res := v.Verify(r.Context(), r.Header.Get(wavpubverify.HeaderToken), r.Host, wavpubverify.ScopeRSS, clientIP)
+if res.Valid {
+    // Verified WavPub crawler request
+} else if res.Degraded {
+    // Timeout or 5xx -> Fail-Normal back to standard anti-bot rules
+}
+```
+
+See framework integration examples in [examples/nethttp](examples/nethttp/main.go) and [examples/gin](examples/gin/main.go).
